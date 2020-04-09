@@ -7,5 +7,6 @@
 
 
 ## References
+* https://github.com/dli/fluid
 * https://matthias-research.github.io/pages/publications/sca03.pdf
 * http://www.miaumiau.cat/2011/08/fluid-simulation-with-sph-smoothed-particle-hydrodynamics-in-webgl/
