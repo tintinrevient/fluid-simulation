@@ -73,10 +73,6 @@ var Camera = (function () {
         return position;
     };
 
-    Camera.prototype.isMouseDown = function () {
-        return this.mouseDown;
-    };
-
     Camera.prototype.getViewMatrix = function () {
         return this.viewMatrix;
     };
@@ -89,49 +85,6 @@ var Camera = (function () {
         if (this.elevation < this.minElevation) this.elevation = this.minElevation;
 
         this.recomputeViewMatrix();
-    };
-
-    Camera.prototype.onMouseDown = function (event) {
-        event.preventDefault();
-
-        var x = Utilities.getMousePosition(event, this.element).x;
-        var y = Utilities.getMousePosition(event, this.element).y;
-
-        this.mouseDown = true;
-        this.lastMouseX = x;
-        this.lastMouseY = y;
-    };
-
-    Camera.prototype.onMouseUp = function (event) {
-        event.preventDefault();
-
-        this.mouseDown = false;
-    };
-
-    Camera.prototype.onMouseMove = function (event) {
-        event.preventDefault();
-
-        var x = Utilities.getMousePosition(event, this.element).x;
-        var y = Utilities.getMousePosition(event, this.element).y;
-
-        if (this.mouseDown) {
-            this.currentMouseX = x;
-            this.currentMouseY = y;
-
-            var deltaAzimuth = (this.currentMouseX - this.lastMouseX) * SENSITIVITY;
-            var deltaElevation = (this.currentMouseY - this.lastMouseY) * SENSITIVITY;
-
-            this.azimuth += deltaAzimuth;
-            this.elevation += deltaElevation;
-
-            if (this.elevation > this.maxElevation) this.elevation = this.maxElevation;
-            if (this.elevation < this.minElevation) this.elevation = this.minElevation;
-
-            this.recomputeViewMatrix();
-
-            this.lastMouseX = this.currentMouseX;
-            this.lastMouseY = this.currentMouseY;
-        }
     };
 
     return Camera;

@@ -131,11 +131,6 @@ var Simulator = (function () {
                 fragmentShader: ['shaders/common.frag', 'shaders/enforceboundaries.frag'],
                 attributeLocations: { 'a_textureCoordinates': 0 }
             },
-            extendVelocityProgram: {
-                vertexShader: 'shaders/fullscreen.vert',
-                fragmentShader: 'shaders/extendvelocity.frag',
-                attributeLocations: { 'a_textureCoordinates': 0 }
-            },
             transferToParticlesProgram: {
                 vertexShader: 'shaders/fullscreen.vert',
                 fragmentShader: ['shaders/common.frag', 'shaders/transfertoparticles.frag'],
@@ -271,7 +266,7 @@ var Simulator = (function () {
 
     //you need to call reset() with correct parameters before simulating
     //mouseVelocity, mouseRayOrigin, mouseRayDirection are all expected to be arrays of 3 values
-    Simulator.prototype.simulate = function (timeStep, mouseVelocity, mouseRayOrigin, mouseRayDirection) {
+    Simulator.prototype.simulate = function (timeStep) {
         if (timeStep === 0.0) return;
 
         this.frameNumber += 1;
@@ -419,14 +414,8 @@ var Simulator = (function () {
 
             .uniform1f('u_timeStep', timeStep)
 
-            .uniform3f('u_mouseVelocity', mouseVelocity[0], mouseVelocity[1], mouseVelocity[2])
-
             .uniform3f('u_gridResolution', this.gridResolutionX, this.gridResolutionY, this.gridResolutionZ)
             .uniform3f('u_gridSize', this.gridWidth, this.gridHeight, this.gridDepth)
-
-            .uniform3f('u_mouseRayOrigin', mouseRayOrigin[0], mouseRayOrigin[1], mouseRayOrigin[2])
-            .uniform3f('u_mouseRayDirection', mouseRayDirection[0], mouseRayDirection[1], mouseRayDirection[2])
-
 
         wgl.drawArrays(addForceDrawState, wgl.TRIANGLE_STRIP, 0, 4);
 
@@ -460,7 +449,7 @@ var Simulator = (function () {
          //compute divergence for pressure projection
 
         var divergenceDrawState = wgl.createDrawState()
-            
+
             .bindFramebuffer(this.simulationFramebuffer)
             .viewport(0, 0, this.scalarTextureWidth, this.scalarTextureHeight)
 
@@ -478,7 +467,7 @@ var Simulator = (function () {
         wgl.clear(
             wgl.createClearState().bindFramebuffer(this.simulationFramebuffer),
             wgl.COLOR_BUFFER_BIT);
-        
+
         wgl.drawArrays(divergenceDrawState, wgl.TRIANGLE_STRIP, 0, 4);
         
         

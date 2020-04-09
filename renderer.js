@@ -205,10 +205,6 @@ var Renderer = (function () {
                 vertexShader: 'shaders/sphere.vert',
                 fragmentShader: 'shaders/sphere.frag'
             },
-            sphereDepthProgram: {
-                vertexShader: 'shaders/spheredepth.vert',
-                fragmentShader: 'shaders/spheredepth.frag'
-            },
             sphereAOProgram: {
                 vertexShader: 'shaders/sphereao.vert',
                 fragmentShader: 'shaders/sphereao.frag'
@@ -349,7 +345,7 @@ var Renderer = (function () {
             .vertexAttribDivisorANGLE(this.sphereAOProgram.getAttribLocation('a_textureCoordinates'), 1)
 
 
-            .bindIndexBuffer(this.sphereIndexBuffer) 
+            .bindIndexBuffer(this.sphereIndexBuffer)
 
             .uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix)
             .uniformMatrix4fv('u_viewMatrix', false, viewMatrix)
@@ -367,52 +363,6 @@ var Renderer = (function () {
 
         wgl.drawElementsInstancedANGLE(occlusionDrawState, wgl.TRIANGLES, this.sphereGeometry.indices.length, wgl.UNSIGNED_SHORT, 0, this.particlesWidth * this.particlesHeight);
 
-
-        ////////////////////////////////////////////////
-        // draw depth map
-
-        wgl.framebufferTexture2D(this.depthFramebuffer, wgl.FRAMEBUFFER, wgl.COLOR_ATTACHMENT0, wgl.TEXTURE_2D, this.depthColorTexture, 0);
-        wgl.framebufferTexture2D(this.depthFramebuffer, wgl.FRAMEBUFFER, wgl.DEPTH_ATTACHMENT, wgl.TEXTURE_2D, this.depthTexture, 0);
-
-        wgl.clear(
-            wgl.createClearState().bindFramebuffer(this.depthFramebuffer).clearColor(0, 0, 0, 0),
-            wgl.DEPTH_BUFFER_BIT);
-
-
-        var depthDrawState = wgl.createDrawState()
-            .bindFramebuffer(this.depthFramebuffer)
-            .viewport(0, 0, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT)
-
-            .enable(wgl.DEPTH_TEST)
-            .depthMask(true)
-
-            //so no occlusion past end of shadow map (with clamp to edge)
-            .enable(wgl.SCISSOR_TEST)
-            .scissor(1, 1, SHADOW_MAP_WIDTH - 2, SHADOW_MAP_HEIGHT - 2)
-
-            .colorMask(false, false, false, false)
-
-            .enable(wgl.CULL_FACE)
-
-            .useProgram(this.sphereDepthProgram)
-
-            .vertexAttribPointer(this.sphereVertexBuffer, this.sphereDepthProgram.getAttribLocation('a_vertexPosition'), 3, wgl.FLOAT, wgl.FALSE, 0, 0)
-            .vertexAttribPointer(this.particleVertexBuffer, this.sphereDepthProgram.getAttribLocation('a_textureCoordinates'), 2, wgl.FLOAT, wgl.FALSE, 0, 0)
-            .vertexAttribDivisorANGLE(this.sphereDepthProgram.getAttribLocation('a_textureCoordinates'), 1)
-
-            .bindIndexBuffer(this.sphereIndexBuffer) 
-
-            .uniformMatrix4fv('u_projectionViewMatrix', false, this.lightProjectionViewMatrix)
-
-            .uniformTexture('u_positionsTexture', 0, wgl.TEXTURE_2D, simulator.particlePositionTexture)
-            .uniformTexture('u_velocitiesTexture', 1, wgl.TEXTURE_2D, simulator.particleVelocityTexture)
-
-            .uniform1f('u_sphereRadius', this.sphereRadius)
-
-
-        wgl.drawElementsInstancedANGLE(depthDrawState, wgl.TRIANGLES, this.sphereGeometry.indices.length, wgl.UNSIGNED_SHORT, 0, this.particlesWidth * this.particlesHeight);
-
-
         ///////////////////////////////////////////
         // composite
 
@@ -428,7 +378,7 @@ var Renderer = (function () {
         var compositeDrawState = wgl.createDrawState()
             .bindFramebuffer(this.renderingFramebuffer)
             .viewport(0, 0, this.canvas.width, this.canvas.height)
-            
+
             .useProgram(this.compositeProgram)
 
             .vertexAttribPointer(this.quadVertexBuffer, 0, 2, wgl.FLOAT, wgl.FALSE, 0, 0)
@@ -459,7 +409,7 @@ var Renderer = (function () {
         var fxaaDrawState = wgl.createDrawState()
             .bindFramebuffer(null)
             .viewport(0, 0, this.canvas.width, this.canvas.height)
-            
+
             .useProgram(this.fxaaProgram)
 
             .vertexAttribPointer(this.quadVertexBuffer, 0, 2, wgl.FLOAT, wgl.FALSE, 0, 0)
