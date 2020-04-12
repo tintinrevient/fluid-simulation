@@ -27,8 +27,8 @@ class Simulator {
 
         this.simulationNumberType = this.halfFloatExt.HALF_FLOAT_OES;
 
-        this.flipness = 0.99; //0 is full PIC, 1 is full FLIP
-        this.frameNumber = 0; //used for motion randomness
+        this.flipness = 0.99;
+        this.frameNumber = 0;
 
         this.quadVertexBuffer = wgl.createBuffer();
         wgl.bufferData(this.quadVertexBuffer, wgl.ARRAY_BUFFER, new Float32Array([-1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0]), wgl.STATIC_DRAW);
@@ -192,8 +192,8 @@ class Simulator {
         object[b] = temp;
     }
 
-    simulate(timeStep) {
-        if (timeStep === 0.0) return;
+    simulate() {
+        this.timeStep = 1.0 / 60;
 
         this.frameNumber += 1;
 
@@ -289,7 +289,7 @@ class Simulator {
             .vertexAttribPointer(this.quadVertexBuffer, 0, 2, wgl.FLOAT, wgl.FALSE, 0, 0)
             .useProgram(this.addForceProgram)
             .uniformTexture('u_velocityTexture', 0, wgl.TEXTURE_2D, this.velocityTexture)
-            .uniform1f('u_timeStep', timeStep)
+            .uniform1f('u_timeStep', this.timeStep)
         wgl.drawArrays(addForceDrawState, wgl.TRIANGLE_STRIP, 0, 4);
 
         this.swap(this, 'velocityTexture', 'tempVelocityTexture');
@@ -405,7 +405,7 @@ class Simulator {
             .uniformTexture('u_velocityGrid', 2, wgl.TEXTURE_2D, this.velocityTexture)
             .uniform3f('u_gridResolution', this.gridResolutionX, this.gridResolutionY, this.gridResolutionZ)
             .uniform3f('u_gridSize', this.gridWidth, this.gridHeight, this.gridDepth)
-            .uniform1f('u_timeStep', timeStep)
+            .uniform1f('u_timeStep', this.timeStep)
             .uniform1f('u_frameNumber', this.frameNumber)
             .uniform2f('u_particlesResolution', this.particlesWidth, this.particlesHeight);
         wgl.drawArrays(advectDrawState, wgl.TRIANGLE_STRIP, 0, 4);

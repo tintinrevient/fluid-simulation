@@ -47,7 +47,6 @@ class FluidParticles {
 
         var gridCells = this.GRID_WIDTH * this.GRID_HEIGHT * this.GRID_DEPTH * this.gridCellDensity;
 
-        //assuming x:y:z ratio of 2:1:1
         var gridResolutionY = Math.ceil(Math.pow(gridCells / 2, 1.0 / 3.0));
         var gridResolutionZ = gridResolutionY * 1;
         var gridResolutionX = gridResolutionY * 2;
@@ -79,7 +78,6 @@ class FluidParticles {
 
         var gridCells = this.GRID_WIDTH * this.GRID_HEIGHT * this.GRID_DEPTH * this.gridCellDensity;
 
-        //assuming x:y:z ratio of 2:1:1
         var gridResolutionY = Math.ceil(Math.pow(gridCells / 2, 1.0 / 3.0));
         var gridResolutionZ = gridResolutionY * 1;
         var gridResolutionX = gridResolutionY * 2;
@@ -93,7 +91,6 @@ class FluidParticles {
 
         this.camera.setBounds(0, Math.PI / 2);
 
-        this.timeStep = 1.0 / 60.0;
         var loop = (function () {
             this.update();
             this.stats.update();
@@ -112,7 +109,7 @@ class FluidParticles {
         if (this.state === this.State.EDITING) {
             this.boxEditor.draw();
         } else if (this.state === this.State.SIMULATING) {
-            this.simulator.simulate(this.timeStep);
+            this.simulator.simulate();
             this.renderer.draw(this.simulator, this.projectionMatrix, this.camera.getViewMatrix());
         }
     }
