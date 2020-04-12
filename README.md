@@ -1,5 +1,10 @@
 # Fluid Simulation
 
+## Run
+```
+python -m http.server
+```
+
 ## To-Do List
 - [ ] Maintain a grid used to easily find neighbouring particles.
 - [ ] Calculate the momentum of the particles using the pressure applied by neighbours, viscosity, and external forces.
@@ -7,5 +12,6 @@
 
 
 ## References
+* https://github.com/dli/fluid
 * https://matthias-research.github.io/pages/publications/sca03.pdf
 * http://www.miaumiau.cat/2011/08/fluid-simulation-with-sph-smoothed-particle-hydrodynamics-in-webgl/
