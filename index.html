@@ -9,16 +9,16 @@
         <canvas id="canvas" width="1920" height="1080"></canvas>
         <div id="stats"></div>
 
-        <script src="wrappedgl.js"></script>
-        <script src="utilities.js"></script>
-        <script src="camera.js"></script>
+        <script src="libs/dat.gui.js"></script>
+        <script src="libs/stats.js"></script>
+        <script src="libs/wrappedgl.js"></script>
+        <script src="libs/camera.js"></script>
+        <script src="libs/utilities.js"></script>
         <script src="boxeditor.js"></script>
         <script src="aabb.js"></script>
         <script src="simulator.js"></script>
         <script src="renderer.js"></script>
         <script src="fluidparticles.js"></script>
-        <script src="dat.gui.js"></script>
-        <script src="stats.js"></script>
 
         <script>
             // GUI
@@ -26,7 +26,8 @@
             var controls = new function () {
                 this.start = function () {
                     var density = controls.density;
-                    fluidBox.startSimulation(density);
+                    var flipness = controls.flipness;
+                    fluidBox.startSimulation(density, flipness);
                 };
 
                 this.stop = function () {
@@ -34,10 +35,12 @@
                 };
 
                 this.density = 0.4;
+                this.flipness = 0.99;
             }
             gui.add(controls, 'start');
             gui.add(controls, 'stop');
             gui.add(controls, 'density', 0, 1);
+            gui.add(controls, 'flipness', 0, 1)
 
             // Stats
             var stats = new Stats();

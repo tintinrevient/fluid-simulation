@@ -17,7 +17,7 @@ uniform float u_zOffset; //the offset for the z layer we're splatting into
 varying float v_zIndex; //the z layer we're splatting into
 
 void main () {
-    gl_PointSize = 5.0; //TODO: i can probably compute this more accurately
+    gl_PointSize = 5.0;
 
     vec3 position = texture2D(u_positionTexture, a_textureCoordinates).rgb;
     position = (position / u_gridSize) * u_gridResolution;

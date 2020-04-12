@@ -28,7 +28,6 @@ void main () {
 
     float newPressure = (left + right + bottom + top + back + front - divergenceCenter) / 6.0;
 
-
     gl_FragColor = vec4(newPressure, 0.0, 0.0, 0.0);
 
 }

@@ -1,5 +1,3 @@
-'use strict'
-
 class FluidParticles {
 
     constructor(stats) {
@@ -37,12 +35,12 @@ class FluidParticles {
         this.renderer = new Renderer(this.canvas, this.wgl, [this.GRID_WIDTH, this.GRID_HEIGHT, this.GRID_DEPTH]);
     }
 
-    onResize(event) {
+    onResize() {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
         Utilities.makePerspectiveMatrix(this.projectionMatrix, this.FOV, this.canvas.width / this.canvas.height, 0.1, 100.0);
 
-        this.renderer.onResize(event);
+        this.renderer.onResize();
     }
 
     getParticleCount() {
@@ -63,13 +61,13 @@ class FluidParticles {
         return desiredParticleCount;
     }
 
-    startSimulation(density) {
+    startSimulation(density, flipness) {
         this.state = this.State.SIMULATING;
         this.gridCellDensity = density;
 
-        var desiredParticleCount = this.getParticleCount(); //theoretical number of particles
-        var particlesWidth = 512; //we fix particlesWidth
-        var particlesHeight = Math.ceil(desiredParticleCount / particlesWidth); //then we calculate the particlesHeight that produces the closest particle count
+        var desiredParticleCount = this.getParticleCount();
+        var particlesWidth = 512;
+        var particlesHeight = Math.ceil(desiredParticleCount / particlesWidth);
 
         var particleCount = particlesWidth * particlesHeight;
         var particlePositions = [];
@@ -90,7 +88,7 @@ class FluidParticles {
         var gridResolution = [gridResolutionX, gridResolutionY, gridResolutionZ];
 
         var sphereRadius = 7.0 / gridResolutionX;
-        this.simulator.reset(particlesWidth, particlesHeight, particlePositions, gridSize, gridResolution, this.PARTICLES_PER_CELL);
+        this.simulator.reset(particlesWidth, particlesHeight, particlePositions, gridSize, gridResolution, this.PARTICLES_PER_CELL, flipness);
         this.renderer.reset(particlesWidth, particlesHeight, sphereRadius);
 
         this.camera.setBounds(0, Math.PI / 2);

@@ -11,7 +11,7 @@ uniform sampler2D u_originalGridVelocityTexture; //the grid velocities before th
 uniform vec3 u_gridResolution;
 uniform vec3 u_gridSize;
 
-uniform float u_flipness; //0 is full PIC, 1 is full FLIP
+uniform float u_flipness;
 
 float sampleXVelocity (sampler2D texture, vec3 position) {
     vec3 cellIndex = vec3(position.x, position.y - 0.5, position.z - 0.5);

@@ -4,7 +4,6 @@ varying vec2 v_coordinates;
 
 uniform sampler2D u_renderingTexture;
 
-
 vec3 hsvToRGB(vec3 c) {
     vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);

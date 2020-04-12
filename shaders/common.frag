@@ -43,22 +43,3 @@ vec4 texture3DNearest(sampler2D texture, vec3 coordinates, vec3 resolution) { //
 
     return texture2D(texture, textureCoordinates);
 }
-
-/*
-vec4 texture3D(sampler2D tex, vec3 texCoord, vec3 resolution) {
-    float size = resolution.z;
-   float sliceSize = 1.0 / size;                         // space of 1 slice
-   float slicePixelSize = sliceSize / size;              // space of 1 pixel
-   float sliceInnerSize = slicePixelSize * (size - 1.0); // space of size pixels
-   float zSlice0 = min(floor(texCoord.z * size), size - 1.0);
-   float zSlice1 = min(zSlice0 + 1.0, size - 1.0);
-   float xOffset = slicePixelSize * 0.5 + texCoord.x * sliceInnerSize;
-   float s0 = xOffset + (zSlice0 * sliceSize);
-   float s1 = xOffset + (zSlice1 * sliceSize);
-   vec4 slice0Color = texture2D(tex, vec2(s0, texCoord.y));
-   vec4 slice1Color = texture2D(tex, vec2(s1, texCoord.y));
-   float zOffset = mod(texCoord.z * size, 1.0);
-   return mix(slice0Color, slice1Color, zOffset);
-}
-*/
-

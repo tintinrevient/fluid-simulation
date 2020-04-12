@@ -49,8 +49,6 @@ void main () {
 
     step += 0.05 * randomDirection * length(velocity) * u_timeStep;
 
-    //step = clamp(step, -vec3(1.0), vec3(1.0)); //enforce CFL condition
-
     vec3 newPosition = position + step;
 
     newPosition = clamp(newPosition, vec3(0.01), u_gridSize - 0.01);

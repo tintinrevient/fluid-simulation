@@ -306,7 +306,6 @@ var WrappedGL = (function () {
         'ZERO'
     ];
 
-
     function WrappedGL (canvas, options) {
         var gl = this.gl = canvas.getContext('webgl', options) || canvas.getContext('experimental-webgl', options);
 

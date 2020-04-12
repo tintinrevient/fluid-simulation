@@ -20,7 +20,6 @@ void main () {
     float back = texture3DNearest(u_pressureTexture, (cellIndex + vec3(0.0, 0.0, -1.0) + 0.5) / u_gridResolution, u_gridResolution).r;
     float front = texture3DNearest(u_pressureTexture, (cellIndex + 0.5) / u_gridResolution, u_gridResolution).r;
 
-
     //compute gradient of pressure
     vec3 gradient = vec3(right - left, top - bottom, front - back) / 1.0;
 

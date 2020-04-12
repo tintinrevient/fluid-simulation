@@ -1,5 +1,3 @@
-'use strict'
-
 class Renderer {
 
     constructor(canvas, wgl, gridDimensions) {
@@ -51,7 +49,7 @@ class Renderer {
             },
             compositeProgram: {
                 vertexShader: 'shaders/fullscreen.vert',
-                fragmentShader: 'shaders/composite.frag',
+                fragmentShader: 'shaders/lighting.frag',
                 attributeLocations: { 'a_position': 0}
             }
         }, (function (programs) {
@@ -61,14 +59,6 @@ class Renderer {
             }).bind(this));
     }
 
-    /*
-    we render in a deferred way to a special RGBA texture format
-    the format is (normal.x, normal.y, speed, depth)
-    the normal is normalized (thus z can be reconstructed with sqrt(1.0 - x * x - y * y)
-    the depth simply the z in view space
-    */
-
-    //returns {vertices, normals, indices}
     generateSphereGeometry(iterations) {
 
         var vertices = [],
@@ -191,7 +181,7 @@ class Renderer {
         }
     }
 
-    onResize(event) {
+    onResize() {
         wgl.renderbufferStorage(this.renderingRenderbuffer, wgl.RENDERBUFFER, wgl.DEPTH_COMPONENT16, this.canvas.width, this.canvas.height);
         wgl.rebuildTexture(this.renderingTexture, wgl.RGBA, wgl.FLOAT, this.canvas.width, this.canvas.height, null, wgl.CLAMP_TO_EDGE, wgl.CLAMP_TO_EDGE, wgl.LINEAR, wgl.LINEAR); //contains (normal.x, normal.y, speed, depth)
         wgl.rebuildTexture(this.compositingTexture, wgl.RGBA, wgl.UNSIGNED_BYTE, this.canvas.width, this.canvas.height, null, wgl.CLAMP_TO_EDGE, wgl.CLAMP_TO_EDGE, wgl.LINEAR, wgl.LINEAR);
@@ -233,8 +223,6 @@ class Renderer {
             .useProgram(this.sphereProgram)
 
             .vertexAttribPointer(this.sphereVertexBuffer, this.sphereProgram.getAttribLocation('a_vertexPosition'), 3, wgl.FLOAT, wgl.FALSE, 0, 0)
-            .vertexAttribPointer(this.sphereNormalBuffer, this.sphereProgram.getAttribLocation('a_vertexNormal'), 3, wgl.FLOAT, wgl.FALSE, 0, 0)
-
             .vertexAttribPointer(this.particleVertexBuffer, this.sphereProgram.getAttribLocation('a_textureCoordinates'), 2, wgl.FLOAT, wgl.FALSE, 0, 0)
             .vertexAttribDivisorANGLE(this.sphereProgram.getAttribLocation('a_textureCoordinates'), 1)
 
@@ -242,10 +230,7 @@ class Renderer {
 
             .uniformMatrix4fv('u_projectionMatrix', false, projectionMatrix)
             .uniformMatrix4fv('u_viewMatrix', false, viewMatrix)
-
             .uniformTexture('u_positionsTexture', 0, wgl.TEXTURE_2D, simulator.particlePositionTexture)
-            .uniformTexture('u_velocitiesTexture', 1, wgl.TEXTURE_2D, simulator.particleVelocityTexture)
-
             .uniform1f('u_sphereRadius', this.sphereRadius)
 
         wgl.drawElementsInstancedANGLE(sphereDrawState, wgl.TRIANGLES, this.sphereGeometry.indices.length, wgl.UNSIGNED_SHORT, 0, this.particlesWidth * this.particlesHeight);

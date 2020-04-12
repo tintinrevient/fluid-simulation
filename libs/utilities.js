@@ -1,47 +1,8 @@
-'use strict'
-
 var Utilities = {
-    clamp: function (x, min, max) {
-        return Math.max(min, Math.min(max, x));
-    },
-
-    getMousePosition: function (event, element) {
-        var boundingRect = element.getBoundingClientRect();
-        return {
-            x: event.clientX - boundingRect.left,
-            y: event.clientY - boundingRect.top
-        };
-    },
-
-    addVectors: function (out, a, b) {
-        out[0] = a[0] + b[0];
-        out[1] = a[1] + b[1];
-        out[2] = a[2] + b[2];
-        return out;
-    },
-
-    subtractVectors: function (out, a, b) {
-        out[0] = a[0] - b[0];
-        out[1] = a[1] - b[1];
-        out[2] = a[2] - b[2];
-        return out;
-    },
 
     magnitudeOfVector: function (v) {
         return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
     },
-
-    dotVectors: function (a, b) {
-        return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-    },
-
-    multiplyVectorByScalar: function (out, v, k) {
-        out[0] = v[0] * k;
-        out[1] = v[1] * k;
-        out[2] = v[2] * k;
-        return out;
-    },
-
 
     normalizeVector: function (out, v) {
         var inverseMagnitude = 1.0 / Utilities.magnitudeOfVector(v);
@@ -177,64 +138,6 @@ var Utilities = {
         return out;
     },
 
-    invertMatrix: function (out, m) {
-        var m0 = m[0], m4 = m[4], m8 = m[8], m12 = m[12],
-            m1 = m[1], m5 = m[5], m9 = m[9], m13 = m[13],
-            m2 = m[2], m6 = m[6], m10 = m[10], m14 = m[14],
-            m3 = m[3], m7 = m[7], m11 = m[11], m15 = m[15],
-
-            temp0 = m10 * m15,
-            temp1 = m14 * m11,
-            temp2 = m6 * m15,
-            temp3 = m14 * m7,
-            temp4 = m6 * m11,
-            temp5 = m10 * m7,
-            temp6 = m2 * m15,
-            temp7 = m14 * m3,
-            temp8 = m2 * m11,
-            temp9 = m10 * m3,
-            temp10 = m2 * m7,
-            temp11 = m6 * m3,
-            temp12 = m8 * m13,
-            temp13 = m12 * m9,
-            temp14 = m4 * m13,
-            temp15 = m12 * m5,
-            temp16 = m4 * m9,
-            temp17 = m8 * m5,
-            temp18 = m0 * m13,
-            temp19 = m12 * m1,
-            temp20 = m0 * m9,
-            temp21 = m8 * m1,
-            temp22 = m0 * m5,
-            temp23 = m4 * m1,
-
-            t0 = (temp0 * m5 + temp3 * m9 + temp4 * m13) - (temp1 * m5 + temp2 * m9 + temp5 * m13),
-            t1 = (temp1 * m1 + temp6 * m9 + temp9 * m13) - (temp0 * m1 + temp7 * m9 + temp8 * m13),
-            t2 = (temp2 * m1 + temp7 * m5 + temp10 * m13) - (temp3 * m1 + temp6 * m5 + temp11 * m13),
-            t3 = (temp5 * m1 + temp8 * m5 + temp11 * m9) - (temp4 * m1 + temp9 * m5 + temp10 * m9),
-
-            d = 1.0 / (m0 * t0 + m4 * t1 + m8 * t2 + m12 * t3);
-            
-        out[0] = d * t0;
-        out[1] = d * t1;
-        out[2] = d * t2;
-        out[3] = d * t3;
-        out[4] = d * ((temp1 * m4 + temp2 * m8 + temp5 * m12) - (temp0 * m4 + temp3 * m8 + temp4 * m12));
-        out[5] = d * ((temp0 * m0 + temp7 * m8 + temp8 * m12) - (temp1 * m0 + temp6 * m8 + temp9 * m12));
-        out[6] = d * ((temp3 * m0 + temp6 * m4 + temp11 * m12) - (temp2 * m0 + temp7 * m4 + temp10 * m12));
-        out[7] = d * ((temp4 * m0 + temp9 * m4 + temp10 * m8) - (temp5 * m0 + temp8 * m4 + temp11 * m8));
-        out[8] = d * ((temp12 * m7 + temp15 * m11 + temp16 * m15) - (temp13 * m7 + temp14 * m11 + temp17 * m15));
-        out[9] = d * ((temp13 * m3 + temp18 * m11 + temp21 * m15) - (temp12 * m3 + temp19 * m11 + temp20 * m15));
-        out[10] = d * ((temp14 * m3 + temp19 * m7 + temp22 * m15) - (temp15 * m3 + temp18 * m7 + temp23 * m15));
-        out[11] = d * ((temp17 * m3 + temp20 * m7 + temp23 * m11) - (temp16 * m3 + temp21 * m7 + temp22 * m11));
-        out[12] = d * ((temp14 * m10 + temp17 * m14 + temp13 * m6) - (temp16 * m14 + temp12 * m6 + temp15 * m10));
-        out[13] = d * ((temp20 * m14 + temp12 * m2 + temp19 * m10) - (temp18 * m10 + temp21 * m14 + temp13 * m2));
-        out[14] = d * ((temp18 * m6 + temp23 * m14 + temp15 * m2) - (temp22 * m14 + temp14 * m2 + temp19 * m6));
-        out[15] = d * ((temp22 * m10 + temp16 * m2 + temp21 * m6) - (temp20 * m6 + temp23 * m10 + temp17 * m2));
-
-        return out;
-    },
-
     makeLookAtMatrix: function (matrix, eye, target, up) { //up is assumed to be normalized
         var forwardX = eye[0] - target[0],
             forwardY = eye[1] - target[1],
@@ -299,6 +202,6 @@ var Utilities = {
         matrix[15] = 1;
 
         return matrix;
-    },
+    }
 }
 

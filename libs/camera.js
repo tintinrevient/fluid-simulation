@@ -1,13 +1,5 @@
-'use strict'
-
-var Camera = (function () {
-    var SENSITIVITY = 0.005;
-
-    var MIN_DISTANCE = 25.0;
-    var MAX_DISTANCE = 60.0;
-
-    function Camera (element, orbitPoint) {
-        this.element = element;
+class Camera {
+    constructor (element, orbitPoint) {
         this.distance = 40.0;
         this.orbitPoint = orbitPoint;
 
@@ -17,32 +9,12 @@ var Camera = (function () {
         this.minElevation = -Math.PI / 4;
         this.maxElevation = Math.PI / 4;
 
-        this.currentMouseX = 0,
-        this.currentMouseY = 0;
-
-        this.lastMouseX = 0,
-        this.lastMouseY = 0;
-
-        this.mouseDown = false;
-
         this.viewMatrix = new Float32Array(16);
 
-
         this.recomputeViewMatrix();
-
-
-        element.addEventListener('wheel', (function (event) {
-            var scrollDelta = event.deltaY;
-            this.distance += ((scrollDelta > 0) ? 1 : -1) * 2.0;
-
-            if (this.distance < MIN_DISTANCE) this.distance = MIN_DISTANCE;
-            if (this.distance > MAX_DISTANCE) this.distance = MAX_DISTANCE;
-
-            this.recomputeViewMatrix();
-        }).bind(this));
     };
 
-    Camera.prototype.recomputeViewMatrix = function () {
+    recomputeViewMatrix() {
         var xRotationMatrix = new Float32Array(16),
             yRotationMatrix = new Float32Array(16),
             distanceTranslationMatrix = Utilities.makeIdentityMatrix(new Float32Array(16)),
@@ -63,21 +35,11 @@ var Camera = (function () {
         Utilities.premultiplyMatrix(this.viewMatrix, this.viewMatrix, distanceTranslationMatrix);
     };
 
-    Camera.prototype.getPosition = function () {
-        var position = [
-            this.distance * Math.sin(Math.PI / 2 - this.elevation) * Math.sin(-this.azimuth) + this.orbitPoint[0],
-            this.distance * Math.cos(Math.PI / 2 - this.elevation) + this.orbitPoint[1],
-            this.distance * Math.sin(Math.PI / 2 - this.elevation) * Math.cos(-this.azimuth) + this.orbitPoint[2]
-        ];
-
-        return position;
-    };
-
-    Camera.prototype.getViewMatrix = function () {
+    getViewMatrix() {
         return this.viewMatrix;
     };
 
-    Camera.prototype.setBounds = function (minElevation, maxElevation) {
+    setBounds(minElevation, maxElevation) {
         this.minElevation = minElevation;
         this.maxElevation = maxElevation;
 
@@ -86,6 +48,4 @@ var Camera = (function () {
 
         this.recomputeViewMatrix();
     };
-
-    return Camera;
-}());
+}
