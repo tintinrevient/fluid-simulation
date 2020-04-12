@@ -3,30 +3,55 @@
     <head>
         <meta charset="utf-8">
         <title>Fluid Particles</title>
-        <link href='https://fonts.googleapis.com/css?family=Asap:400,700' rel='stylesheet' type='text/css'>
-        <link rel="stylesheet" href="flip.css"/>
     </head>
 
     <body>
         <canvas id="canvas" width="1920" height="1080"></canvas>
-
-        <div id="ui">
-            <div id="start-button">Start</div>
-        </div>
-
-        <div id="placeholder"></div>
+        <div id="stats"></div>
 
         <script src="wrappedgl.js"></script>
         <script src="utilities.js"></script>
         <script src="camera.js"></script>
         <script src="boxeditor.js"></script>
+        <script src="aabb.js"></script>
         <script src="simulator.js"></script>
         <script src="renderer.js"></script>
-        <script src="simulatorrenderer.js"></script>
         <script src="fluidparticles.js"></script>
+        <script src="dat.gui.js"></script>
+        <script src="stats.js"></script>
 
         <script>
-            var fluidBox = new FluidParticles();
+            // GUI
+            var gui = new dat.GUI();
+            var controls = new function () {
+                this.start = function () {
+                    var density = controls.density;
+                    fluidBox.startSimulation(density);
+                };
+
+                this.stop = function () {
+                    fluidBox.stopSimulation();
+                };
+
+                this.density = 0.4;
+            }
+            gui.add(controls, 'start');
+            gui.add(controls, 'stop');
+            gui.add(controls, 'density', 0, 1);
+
+            // Stats
+            var stats = new Stats();
+            stats.setMode(0); // 0: fps, 1: ms
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.left = '0px';
+            stats.domElement.style.top = '0px';
+            document.getElementById("stats").appendChild(stats.domElement);
+
+            var fluidBox = new FluidParticles(stats);
+
+            window.addEventListener('resize', fluidBox.onResize);
+            fluidBox.onResize();
+
         </script>
     </body>
 

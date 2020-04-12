@@ -1,6 +1,6 @@
 'use strict'
 
-var Simulator = (function () {
+class Simulator {
 
     //simulation grid dimensions and resolution
     //all particles are in the world position space ([0, 0, 0], [GRID_WIDTH, GRID_HEIGHT, GRID_DEPTH])
@@ -27,7 +27,7 @@ var Simulator = (function () {
     //the boundaries are the boundaries of the grid 
     //a grid cell can either be fluid, air (these are tracked by markTexture) or is a wall (implicit by position)
 
-    function Simulator (wgl, onLoaded) {
+    constructor(wgl, onLoaded) {
         this.wgl = wgl;
 
         this.particlesWidth = 0;
@@ -55,16 +55,9 @@ var Simulator = (function () {
 
         this.simulationNumberType = this.halfFloatExt.HALF_FLOAT_OES;
 
-
-        ///////////////////////////////////////////////////////
-        // simulation parameters
-
         this.flipness = 0.99; //0 is full PIC, 1 is full FLIP
-
-
         this.frameNumber = 0; //used for motion randomness
 
-        
         /////////////////////////////////////////////////
         // simulation objects (most are filled in by reset)
 
@@ -74,17 +67,13 @@ var Simulator = (function () {
         this.simulationFramebuffer = wgl.createFramebuffer();
         this.particleVertexBuffer = wgl.createBuffer();
 
-
         this.particlePositionTexture = wgl.createTexture();
         this.particlePositionTextureTemp = wgl.createTexture();
-
 
         this.particleVelocityTexture = wgl.createTexture();
         this.particleVelocityTextureTemp = wgl.createTexture();
 
         this.particleRandomTexture = wgl.createTexture(); //contains a random normalized direction for each particle
-
-
 
         ////////////////////////////////////////////////////
         // create simulation textures
@@ -99,11 +88,8 @@ var Simulator = (function () {
         this.pressureTexture = wgl.createTexture();
         this.tempSimulationTexture = wgl.createTexture();
 
-
-
         /////////////////////////////
         // load programs
-
 
         wgl.createProgramsFromFiles({
             transferToGridProgram: {
@@ -162,20 +148,17 @@ var Simulator = (function () {
                 attributeLocations: { 'a_position': 0}
             }
         }, (function (programs) {
-            for (var programName in programs) {
-                this[programName] = programs[programName];
-            }
-
-            onLoaded();
-        }).bind(this));
+                for (var programName in programs) {
+                    this[programName] = programs[programName];
+                }
+            }).bind(this));
     }
-
 
     //expects an array of [x, y, z] particle positions
     //gridSize and gridResolution are both [x, y, z]
 
     //particleDensity is particles per simulation grid cell
-    Simulator.prototype.reset = function (particlesWidth, particlesHeight, particlePositions, gridSize, gridResolution, particleDensity) {
+    reset(particlesWidth, particlesHeight, particlePositions, gridSize, gridResolution, particleDensity) {
 
         this.particlesWidth = particlesWidth;
         this.particlesHeight = particlesHeight;
@@ -196,11 +179,6 @@ var Simulator = (function () {
         this.scalarTextureWidth = this.gridResolutionX * this.gridResolutionZ;
         this.scalarTextureHeight = this.gridResolutionY;
 
-
-
-        ///////////////////////////////////////////////////////////
-        // create particle data
-        
         var particleCount = this.particlesWidth * this.particlesHeight;
 
         //fill particle vertex buffer containing the relevant texture coordinates
@@ -234,13 +212,10 @@ var Simulator = (function () {
         wgl.rebuildTexture(this.particlePositionTexture, wgl.RGBA, wgl.FLOAT, this.particlesWidth, this.particlesHeight, particlePositionsData, wgl.CLAMP_TO_EDGE, wgl.CLAMP_TO_EDGE, wgl.NEAREST, wgl.NEAREST);
         wgl.rebuildTexture(this.particlePositionTextureTemp, wgl.RGBA, wgl.FLOAT, this.particlesWidth, this.particlesHeight, null, wgl.CLAMP_TO_EDGE, wgl.CLAMP_TO_EDGE, wgl.NEAREST, wgl.NEAREST);
 
-
         wgl.rebuildTexture(this.particleVelocityTexture, wgl.RGBA, this.simulationNumberType, this.particlesWidth, this.particlesHeight, null, wgl.CLAMP_TO_EDGE, wgl.CLAMP_TO_EDGE, wgl.NEAREST, wgl.NEAREST);
         wgl.rebuildTexture(this.particleVelocityTextureTemp, wgl.RGBA, this.simulationNumberType, this.particlesWidth, this.particlesHeight, null, wgl.CLAMP_TO_EDGE, wgl.CLAMP_TO_EDGE, wgl.NEAREST, wgl.NEAREST);
 
         wgl.rebuildTexture(this.particleRandomTexture, wgl.RGBA, wgl.FLOAT, this.particlesWidth, this.particlesHeight, particleRandoms, wgl.CLAMP_TO_EDGE, wgl.CLAMP_TO_EDGE, wgl.NEAREST, wgl.NEAREST); //contains a random normalized direction for each particle
-
-
 
         ////////////////////////////////////////////////////
         // create simulation textures
@@ -254,11 +229,9 @@ var Simulator = (function () {
         wgl.rebuildTexture(this.divergenceTexture, wgl.RGBA, this.simulationNumberType, this.scalarTextureWidth, this.scalarTextureHeight, null, wgl.CLAMP_TO_EDGE, wgl.CLAMP_TO_EDGE, wgl.LINEAR, wgl.LINEAR);
         wgl.rebuildTexture(this.pressureTexture, wgl.RGBA, this.simulationNumberType, this.scalarTextureWidth, this.scalarTextureHeight, null, wgl.CLAMP_TO_EDGE, wgl.CLAMP_TO_EDGE, wgl.LINEAR, wgl.LINEAR);
         wgl.rebuildTexture(this.tempSimulationTexture, wgl.RGBA, this.simulationNumberType, this.scalarTextureWidth, this.scalarTextureHeight, null, wgl.CLAMP_TO_EDGE, wgl.CLAMP_TO_EDGE, wgl.LINEAR, wgl.LINEAR);
-
-
     }
 
-    function swap (object, a, b) {
+    swap(object, a, b) {
         var temp = object[a];
         object[a] = object[b];
         object[b] = temp;
@@ -266,7 +239,7 @@ var Simulator = (function () {
 
     //you need to call reset() with correct parameters before simulating
     //mouseVelocity, mouseRayOrigin, mouseRayDirection are all expected to be arrays of 3 values
-    Simulator.prototype.simulate = function (timeStep) {
+    simulate(timeStep) {
         if (timeStep === 0.0) return;
 
         this.frameNumber += 1;
@@ -340,7 +313,6 @@ var Simulator = (function () {
             transferToGridDrawState.uniform1f('u_zOffset', z);
             wgl.drawArrays(transferToGridDrawState, wgl.POINTS, 0, this.particlesWidth * this.particlesHeight);
         }
-
 
         //in the second step, we divide sum(weight * velocity) by sum(weight) (the two accumulated quantities from before)
 
@@ -419,7 +391,7 @@ var Simulator = (function () {
 
         wgl.drawArrays(addForceDrawState, wgl.TRIANGLE_STRIP, 0, 4);
 
-        swap(this, 'velocityTexture', 'tempVelocityTexture');
+        this.swap(this, 'velocityTexture', 'tempVelocityTexture');
 
         
         /////////////////////////////////////////////////////
@@ -439,7 +411,7 @@ var Simulator = (function () {
 
         wgl.drawArrays(enforceBoundariesDrawState, wgl.TRIANGLE_STRIP, 0, 4);
 
-        swap(this, 'velocityTexture', 'tempVelocityTexture');
+        this.swap(this, 'velocityTexture', 'tempVelocityTexture');
 
 
         /////////////////////////////////////////////////////
@@ -497,7 +469,7 @@ var Simulator = (function () {
             
             wgl.drawArrays(jacobiDrawState, wgl.TRIANGLE_STRIP, 0, 4);
             
-            swap(this, 'pressureTexture', 'tempSimulationTexture');
+            this.swap(this, 'pressureTexture', 'tempSimulationTexture');
         }
         
         
@@ -519,7 +491,7 @@ var Simulator = (function () {
         
         wgl.drawArrays(subtractDrawState, wgl.TRIANGLE_STRIP, 0, 4);
         
-        swap(this, 'velocityTexture', 'tempVelocityTexture');
+        this.swap(this, 'velocityTexture', 'tempVelocityTexture');
 
         /////////////////////////////////////////////////////////////
         // transfer velocities back to particles
@@ -544,7 +516,7 @@ var Simulator = (function () {
 
         wgl.drawArrays(transferToParticlesDrawState, wgl.TRIANGLE_STRIP, 0, 4);
 
-        swap(this, 'particleVelocityTextureTemp', 'particleVelocityTexture');
+        this.swap(this, 'particleVelocityTextureTemp', 'particleVelocityTexture');
 
         ///////////////////////////////////////////////
         // advect particle positions with velocity grid using RK2
@@ -573,8 +545,6 @@ var Simulator = (function () {
 
         wgl.drawArrays(advectDrawState, wgl.TRIANGLE_STRIP, 0, 4);
 
-        swap(this, 'particlePositionTextureTemp', 'particlePositionTexture');
+        this.swap(this, 'particlePositionTextureTemp', 'particlePositionTexture');
     }
-
-    return Simulator;
-}());
+}

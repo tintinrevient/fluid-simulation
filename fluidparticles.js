@@ -1,132 +1,53 @@
 'use strict'
 
-var FluidParticles = (function () {
-    var FOV = Math.PI / 3;
+class FluidParticles {
 
-    var State = {
-        EDITING: 0,
-        SIMULATING: 1
-    };
+    constructor(stats) {
 
-    var GRID_WIDTH = 40,
-        GRID_HEIGHT = 20,
-        GRID_DEPTH = 20;
+        this.FOV = Math.PI / 3;
 
-    var PARTICLES_PER_CELL = 10;
+        this.State = {
+            EDITING: 0,
+            SIMULATING: 1
+        };
 
-    function FluidParticles () {
+        this.GRID_WIDTH = 40;
+        this.GRID_HEIGHT = 20;
+        this.GRID_DEPTH = 20;
 
-        var canvas = this.canvas = document.getElementById('canvas');
-        var wgl = this.wgl = new WrappedGL(canvas);
+        this.PARTICLES_PER_CELL = 10;
 
-        window.wgl = wgl;
+        this.canvas = document.getElementById('canvas');
+        this.wgl = new WrappedGL(canvas);
 
-        this.projectionMatrix = Utilities.makePerspectiveMatrix(new Float32Array(16), FOV, this.canvas.width / this.canvas.height, 0.1, 100.0);
-        this.camera = new Camera(this.canvas, [GRID_WIDTH / 2, GRID_HEIGHT / 3, GRID_DEPTH / 2]);
+        window.wgl = this.wgl;
 
-        var boxEditorLoaded = false,
-            simulatorRendererLoaded = false;
+        this.stats = stats;
 
-        this.boxEditor = new BoxEditor.BoxEditor(this.canvas, this.wgl, this.projectionMatrix, this.camera, [GRID_WIDTH, GRID_HEIGHT, GRID_DEPTH], (function () {
-            boxEditorLoaded = true;
-            if (boxEditorLoaded && simulatorRendererLoaded) {
-                start.call(this);
-            }
-        }).bind(this),
-        (function () {
-            this.redrawUI();
-        }).bind(this));
+        this.projectionMatrix = Utilities.makePerspectiveMatrix(new Float32Array(16), this.FOV, this.canvas.width / this.canvas.height, 0.1, 100.0);
+        this.camera = new Camera(this.canvas, [this.GRID_WIDTH / 2, this.GRID_HEIGHT / 3, this.GRID_DEPTH / 2]);
 
-        this.simulatorRenderer = new SimulatorRenderer(this.canvas, this.wgl, this.projectionMatrix, this.camera, [GRID_WIDTH, GRID_HEIGHT, GRID_DEPTH], (function () {
-            simulatorRendererLoaded = true;
-            if (boxEditorLoaded && simulatorRendererLoaded) {
-                start.call(this);
-            }
-        }).bind(this));
+        this.boxEditor = new BoxEditor(this.canvas, this.wgl, this.projectionMatrix, this.camera,
+            [this.GRID_WIDTH, this.GRID_HEIGHT, this.GRID_DEPTH]);
 
-        function start(programs) {
-            this.state = State.EDITING;
+        wgl.getExtension('OES_texture_float');
+        wgl.getExtension('OES_texture_float_linear');
 
-            this.startButton = document.getElementById('start-button');
-
-            this.startButton.addEventListener('click', (function () {
-                if (this.state === State.EDITING) {
-                    if (this.boxEditor.boxes.length > 0) {
-                        this.startSimulation();
-                    }
-                    this.redrawUI();
-                } else if (this.state === State.SIMULATING) {
-                    this.stopSimulation();
-                    this.redrawUI();
-                }
-
-            }).bind(this));
-
-            var preset = [new BoxEditor.AABB([0, 0, 0], [15, 20, 20])]
-            for (var i = 0; i < preset.length; ++i) {
-                this.boxEditor.boxes.push(preset[i].clone());
-            }
-
-            ////////////////////////////////////////////////////////
-            // parameters/sliders
-
-            this.timeStep = 1.0 / 60.0;
-            this.gridCellDensity = 0.4;
-
-            this.redrawUI();
-
-            ///////////////////////////////////////////////////////
-            // interaction state stuff
-
-            window.addEventListener('resize', this.onResize.bind(this));
-            this.onResize();
-
-
-            ////////////////////////////////////////////////////
-            // start the update loop
-
-            var lastTime = 0;
-            var update = (function (currentTime) {
-                var deltaTime = currentTime - lastTime || 0;
-                lastTime = currentTime;
-
-                this.update(deltaTime);
-
-                requestAnimationFrame(update);
-            }).bind(this);
-            update();
-        }
+        this.simulator = new Simulator(this.wgl);
+        this.renderer = new Renderer(this.canvas, this.wgl, [this.GRID_WIDTH, this.GRID_HEIGHT, this.GRID_DEPTH]);
     }
 
-    FluidParticles.prototype.onResize = function (event) {
+    onResize(event) {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
-        Utilities.makePerspectiveMatrix(this.projectionMatrix, FOV, this.canvas.width / this.canvas.height, 0.1, 100.0);
+        Utilities.makePerspectiveMatrix(this.projectionMatrix, this.FOV, this.canvas.width / this.canvas.height, 0.1, 100.0);
 
-        this.simulatorRenderer.onResize(event);
+        this.renderer.onResize(event);
     }
 
-    //the UI elements are all created in the constructor, this just updates the DOM elements
-    //should be called every time state changes
-    FluidParticles.prototype.redrawUI = function () {
+    getParticleCount() {
 
-        if (this.state === State.SIMULATING) {
-
-            this.startButton.className = 'start-button-active';
-            this.startButton.textContent = 'Edit';
-
-        } else if (this.state === State.EDITING) {
-
-            this.startButton.className = 'start-button-active';
-            this.startButton.textContent = 'Start';
-        }
-    }
-
-    //compute the number of particles for the current boxes and grid density
-    FluidParticles.prototype.getParticleCount = function () {
-        var boxEditor = this.boxEditor;
-
-        var gridCells = GRID_WIDTH * GRID_HEIGHT * GRID_DEPTH * this.gridCellDensity;
+        var gridCells = this.GRID_WIDTH * this.GRID_HEIGHT * this.GRID_DEPTH * this.gridCellDensity;
 
         //assuming x:y:z ratio of 2:1:1
         var gridResolutionY = Math.ceil(Math.pow(gridCells / 2, 1.0 / 3.0));
@@ -134,30 +55,17 @@ var FluidParticles = (function () {
         var gridResolutionX = gridResolutionY * 2;
 
         var totalGridCells = gridResolutionX * gridResolutionY * gridResolutionZ;
+        var totalVolume = this.boxEditor.box.computeVolume();
+        var fractionFilled = totalVolume / (this.GRID_WIDTH * this.GRID_HEIGHT * this.GRID_DEPTH);
 
-
-        var totalVolume = 0;
-        var cumulativeVolume = []; //at index i, contains the total volume up to and including box i (so index 0 has volume of first box, last index has total volume)
-
-        for (var i = 0; i < boxEditor.boxes.length; ++i) {
-            var box = boxEditor.boxes[i];
-            var volume = box.computeVolume();
-
-            totalVolume += volume;
-            cumulativeVolume[i] = totalVolume;
-        }
-
-        var fractionFilled = totalVolume / (GRID_WIDTH * GRID_HEIGHT * GRID_DEPTH);
-
-        var desiredParticleCount = fractionFilled * totalGridCells * PARTICLES_PER_CELL; //theoretical number of particles
+        var desiredParticleCount = fractionFilled * totalGridCells * this.PARTICLES_PER_CELL;
 
         return desiredParticleCount;
     }
 
-    //begin simulation using boxes from box editor
-    //EDITING -> SIMULATING
-    FluidParticles.prototype.startSimulation = function () {
-        this.state = State.SIMULATING;
+    startSimulation(density) {
+        this.state = this.State.SIMULATING;
+        this.gridCellDensity = density;
 
         var desiredParticleCount = this.getParticleCount(); //theoretical number of particles
         var particlesWidth = 512; //we fix particlesWidth
@@ -165,66 +73,49 @@ var FluidParticles = (function () {
 
         var particleCount = particlesWidth * particlesHeight;
         var particlePositions = [];
-        
-        var boxEditor = this.boxEditor;
 
-        var totalVolume = 0;
-        for (var i = 0; i < boxEditor.boxes.length; ++i) {
-            totalVolume += boxEditor.boxes[i].computeVolume();
+        for (var j = 0; j < particleCount; ++j) {
+            var position = this.boxEditor.box.randomPoint();
+            particlePositions.push(position);
         }
 
-        var particlesCreatedSoFar = 0;
-        for (var i = 0; i < boxEditor.boxes.length; ++i) {
-            var box = boxEditor.boxes[i];
-            
-            var particlesInBox = 0;
-            if (i < boxEditor.boxes.length - 1) { 
-                particlesInBox = Math.floor(particleCount * box.computeVolume() / totalVolume);
-            } else { //for the last box we just use up all the remaining particles
-                particlesInBox = particleCount - particlesCreatedSoFar;
-            }
-
-            for (var j = 0; j < particlesInBox; ++j) {
-                var position = box.randomPoint();
-                particlePositions.push(position);
-            }
-
-            particlesCreatedSoFar += particlesInBox;
-        }
-
-        var gridCells = GRID_WIDTH * GRID_HEIGHT * GRID_DEPTH * this.gridCellDensity;
+        var gridCells = this.GRID_WIDTH * this.GRID_HEIGHT * this.GRID_DEPTH * this.gridCellDensity;
 
         //assuming x:y:z ratio of 2:1:1
         var gridResolutionY = Math.ceil(Math.pow(gridCells / 2, 1.0 / 3.0));
         var gridResolutionZ = gridResolutionY * 1;
         var gridResolutionX = gridResolutionY * 2;
 
-
-        var gridSize = [GRID_WIDTH, GRID_HEIGHT, GRID_DEPTH];
+        var gridSize = [this.GRID_WIDTH, this.GRID_HEIGHT, this.GRID_DEPTH];
         var gridResolution = [gridResolutionX, gridResolutionY, gridResolutionZ];
 
         var sphereRadius = 7.0 / gridResolutionX;
-        this.simulatorRenderer.reset(particlesWidth, particlesHeight, particlePositions, gridSize, gridResolution, PARTICLES_PER_CELL, sphereRadius);
+        this.simulator.reset(particlesWidth, particlesHeight, particlePositions, gridSize, gridResolution, this.PARTICLES_PER_CELL);
+        this.renderer.reset(particlesWidth, particlesHeight, sphereRadius);
 
         this.camera.setBounds(0, Math.PI / 2);
+
+        this.timeStep = 1.0 / 60.0;
+        var loop = (function () {
+            this.update();
+            this.stats.update();
+
+            requestAnimationFrame(loop);
+        }).bind(this);
+        loop();
     }
 
-    //go back to box editing
-    //SIMULATING -> EDITING
-    FluidParticles.prototype.stopSimulation = function () {
-        this.state = State.EDITING;
-
+    stopSimulation() {
+        this.state = this.State.EDITING;
         this.camera.setBounds(-Math.PI / 4, Math.PI / 4);
     }
 
-    FluidParticles.prototype.update = function () {
-        if (this.state === State.EDITING) {
+    update() {
+        if (this.state === this.State.EDITING) {
             this.boxEditor.draw();
-        } else if (this.state === State.SIMULATING) {
-            this.simulatorRenderer.update(this.timeStep);
+        } else if (this.state === this.State.SIMULATING) {
+            this.simulator.simulate(this.timeStep);
+            this.renderer.draw(this.simulator, this.projectionMatrix, this.camera.getViewMatrix());
         }
     }
-
-    return FluidParticles;
-}());
-
+}
