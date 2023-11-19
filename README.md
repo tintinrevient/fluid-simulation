@@ -6,6 +6,7 @@ python -m http.server
 ```
 
 ## To-Do List
+- [ ] webgl new releass
 - [ ] Maintain a grid used to easily find neighbouring particles.
 - [ ] Calculate the momentum of the particles using the pressure applied by neighbours, viscosity, and external forces.
 - [ ] Apply forces from other objects in the scene to the fluid and vice versa. This would require changes to the collision detection, as multiple fluid particles will be colliding with objects at the same time.
